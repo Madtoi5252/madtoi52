@@ -1,0 +1,72 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "retireve",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_value",
+						"type": "uint256"
+					}
+				],
+				"name": "store",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/set_get.sol": "basic"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/set_get.sol": {
+			"keccak256": "0xa59c005c857f9bc4443cb95195a8a30a03e914c0abd9c50fee3f3415d344db9c",
+			"license": "GPL-3.0",
+			"urls": [
+				"bzz-raw://920723ebeb2c546ba3d02dc2deedf9342748777f0586f0e1e8db77e2e59180ab",
+				"dweb:/ipfs/QmfUhGYYUHiKM3V5mXXQNbNuT1WtbRB84CT1pDEPNRbjfU"
+			]
+		}
+	},
+	"version": 1
+}
