@@ -1,0 +1,903 @@
+1 A text to speech
+
+
+import os
+from gtts import gTTS
+
+f= open ("C:/Users/prath/Documents/MscIt/SEM 4/NLP/Practicals/TextSpeech.txt")
+
+x = f.read()
+
+language ='en'
+audio = gTTS(text=x,lang = language)
+audio.save("wishes.wav")
+os.system("wishes.wav")
+print("done")
+
+
+
+1 B speech to text
+
+import speech_recognition as sr
+file = "C:/Users/prath/Documents/MscIt/SEM 4/NLP/Practicals/Greetings.wav"
+recog = sr.Recognizer()
+with sr.AudioFile(file) as source:
+    audio_data = recog.record(source)
+    text = recog.recognize_google(audio_data)
+    print(text)
+
+
+
+
+2 A study of Brown Corpus 
+
+import nltk
+nltk.download('brown')
+from nltk.corpus import brown
+
+print(brown.categories())
+
+print(brown.words(categories = 'news'))
+
+print(brown.fileids())
+
+print(brown.words(fileids='cg22'))
+
+print(brown.sents(categories=['news','editorial','reviews']))
+
+
+
+
+2 b Create and use your own corpora
+
+
+import os, os.path
+path = os.path.expanduser('~/natural_language_toolkit_data')
+if not os.path.exists(path):
+  os.mkdir(path)
+print(os.path.exists(path))
+
+from nltk.corpus.reader import WordListCorpusReader
+reader_corpus = WordListCorpusReader('.',['C:/Users/prath/Documents/MscIt/SEM 4/NLP/Practicals/wordfile.txt'])
+print(reader_corpus.words())
+
+
+
+2c Study Conditional frequency distributions
+
+
+#process a sequence of pairs
+import nltk
+nltk.download('inaugural')
+nltk.download('udhr')
+
+text = ['The', 'Fulton', 'County', 'Grand', 'Jury', 'said', ...]
+pairs = [('news', 'The'), ('news', 'Fulton'), ('news', 'County'), ...]
+
+import nltk
+from nltk.corpus import brown
+
+fd = nltk.ConditionalFreqDist(
+      (genre, word)
+      for genre in brown.categories()
+      for word in brown.words(categories=genre))
+genre_word = [(genre, word)
+      for genre in ['news', 'romance']
+      for word in brown.words(categories=genre)]
+print(len(genre_word))
+print(genre_word[:4])
+print(genre_word[-4:])
+
+cfd = nltk.ConditionalFreqDist(genre_word)
+print(cfd)
+print(cfd.conditions())
+print(cfd['news'])
+print(cfd['romance'])
+print(list(cfd['romance']))
+
+from nltk.corpus import inaugural
+cfd = nltk.ConditionalFreqDist(
+        (target, fileid[:4])
+        for fileid in inaugural.fileids()
+        for w in inaugural.words(fileid)
+        for target in ['america', 'citizen']
+        if w.lower().startswith(target))
+
+from nltk.corpus import udhr
+
+languages = ['Chickasaw', 'English', 'German_Deutsch',
+'Greenlandic_Inuktikut', 'Hungarian_Magyar', 'Ibibio_Efik']
+cfd = nltk.ConditionalFreqDist(
+        (lang, len(word))
+        for lang in languages
+        for word in udhr.words(lang + '-Latin1'))
+
+cfd.tabulate(conditions=['English', 'German_Deutsch'],
+        samples=range(10), cumulative=True)
+
+
+
+2D: Study of tagged corpora with methods like tagged_sents, tagged_words.
+
+
+
+import nltk
+from nltk import tokenize
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('words')
+
+para = "And now we are going to learn something new"
+sents = tokenize.sent_tokenize(para)
+print("\nsentence tokenization:\n",sents)
+
+print("\nword tokenization\n")
+for index in range(len(sents)):
+  words = tokenize.word_tokenize(sents[index])
+  print(nltk.pos_tag(words))
+
+sent = "We are playing football"
+words = tokenize.word_tokenize(sent)
+print(words)
+
+import nltk
+print(nltk.corpus.brown.tagged_words())
+nltk.download('treebank')
+print(nltk.corpus.treebank.tagged_words())
+
+
+
+Write a program to find the most frequent noun tags.
+
+nltk.download('universal_tagset')
+from nltk.corpus import brown
+noun= nltk.FreqDist(w2 for ((w1, t1), (w2, t2)) in
+      nltk.bigrams(brown.tagged_words(tagset="universal"))
+      if w1.lower() == "the" and t2 == "NOUN")
+noun.most_common(10)
+
+
+
+
+
+2e. Map Words to Properties Using Python Dictionaries
+
+
+#creating and printing a dictionay by mapping word with its properties
+thisdict = {
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+print(thisdict)
+print(thisdict["brand"])
+print(len(thisdict))
+print(type(thisdict))
+
+
+
+2f. Study DefaultTagger, Regular expression tagger, UnigramTagger
+
+A  DefaultTagger
+
+
+from nltk.corpus import brown
+nltk.download('brown')
+
+tags = [tag for (word, tag) in brown.tagged_words(categories='news')]
+print(nltk.FreqDist(tags).max())
+
+raw = 'I do not like playing, I do not like running as Well !'
+tokens = nltk.word_tokenize(raw)
+
+default_tagger = nltk.DefaultTagger('NN')
+tagged_tokens = default_tagger.tag(tokens)
+print(tagged_tokens)
+
+
+
+B. Regular Expression Tagger:
+
+import nltk
+nltk.download('brown')
+nltk.download('punkt')
+from nltk.corpus import brown
+from nltk import word_tokenize
+from nltk import RegexpTagger
+brown_sents = brown.sents(categories = 'news')
+brown_tagged_sents = brown.tagged_sents(categories = 'news')
+patterns = [
+(r'.*ed$', 'VBD'),
+(r'.*ould$', 'MD'),
+(r'.*\'s$', 'NN$'),
+(r'.*s$', 'NNS'),
+(r'.*', 'NN') 
+]
+regexp_tagger = nltk.RegexpTagger(patterns)
+regexp_tagger.tag(brown_sents[3])
+
+
+
+C. Unigram Tagge
+
+
+import nltk
+nltk.download('brown')
+nltk.download('punkt')
+from nltk.corpus import brown
+from nltk import UnigramTagger
+
+brown_tagged_sents = brown.tagged_sents(categories = 'news')
+brown_sents = brown.sents(categories = 'news')
+
+unigram_tagger = nltk.UnigramTagger(brown_tagged_sents)
+tags = unigram_tagger.tag(brown_sents[2007])
+print("\nDisplaying the tags : \n", tags)
+evaluation = unigram_tagger.evaluate(brown_tagged_sents)
+print("\nEvaluation : ", evaluation)
+
+
+
+**3 A. Study of Wordnet Dictionary with methods as synsets, definitions examples, antonyms**
+
+
+
+import nltk
+from nltk.corpus import wordnet
+print(wordnet.synsets("computer"))
+
+print(wordnet.synset("computer.n.01").definition())
+
+#examples
+print("Examples:", wordnet.synset("computer.n.01").examples())
+
+#get Antonyms
+print(wordnet.lemma('buy.v.01.buy').antonyms())
+
+
+
+**# 3 B. Study lemmas, hyponyms, hypernyms.**
+
+
+
+import nltk
+from nltk.corpus import wordnet
+print(wordnet.synsets("computer"))
+print(wordnet.synset("computer.n.01").lemma_names())
+
+#all lemmas for each synset.
+for e in wordnet.synsets("computer"):
+  print(f'{e} --> {e.lemma_names()}')
+
+#print all lemmas
+print(wordnet.synset('computer.n.01').lemmas())
+
+#synset corresponding to lemma
+print(wordnet.lemma('computer.n.01.computing_device').synset())
+
+#Get the name
+print(wordnet.lemma('computer.n.01.computing_device').name())
+
+#the list of hyponyms
+syn = wordnet.synset('computer.n.01')
+print(syn.hyponyms)
+print([lemma.name() for synset in syn.hyponyms() for lemma in synset.lemmas()])
+
+#the semantic similarity in WordNet
+vehicle = wordnet.synset('vehicle.n.01')
+car = wordnet.synset('car.n.01')
+print(car.lowest_common_hypernyms(vehicle))
+
+
+
+**3C. Write a program using python to find synonym and antonym of word "active" using Wordnet.**
+
+
+from nltk.corpus import wordnet
+
+print( wordnet.synsets("active"))
+
+print(wordnet.lemma('active.a.01.active').antonyms())
+
+
+
+**3D. Compare two nouns**
+
+import nltk
+nltk.download('wordnet')
+from nltk.corpus import wordnet
+
+syn1 = wordnet.synsets('football')
+syn2 = wordnet.synsets('soccer')
+print(syn1)
+print(syn2)
+
+for s1 in syn1:
+  for s2 in syn2:
+    print("similarity of: ")
+    print(s1, '(', s1.pos(), ')', '[', s1.definition(), ']')
+    print(s2, '(', s2.pos(), ')', '[', s2.definition(), ']')
+    print(" Similarity is", s1.path_similarity(s2))
+    print()
+
+
+**Practical 3E: Handling stopword:**
+
+
+import nltk
+nltk.download('punkt')
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+from nltk.tokenize import word_tokenize
+
+text = "Raj likes to play football, however he is not too fond of tennis."
+text_tokens = word_tokenize(text)
+tokens_without_sw = [word for word in text_tokens if not word in stopwords.words()]
+print(tokens_without_sw)
+
+#add the word 'play' to the NLTK stop word collection
+all_stopwords = stopwords.words('english')
+all_stopwords.append('play')
+text_tokens = word_tokenize(text)
+tokens_without_sw = [word for word in text_tokens if not word in all_stopwords]
+print(tokens_without_sw)
+
+#remove ‘not’ from stop word collection
+all_stopwords.remove('not')
+text_tokens = word_tokenize(text)
+tokens_without_sw = [word for word in text_tokens if not word in all_stopwords]
+print(tokens_without_sw)
+
+
+**Using Gensim Adding and Removing Stop Words in Default Gensim Stop Words List**
+
+
+import gensim
+from gensim.parsing.preprocessing import remove_stopwords
+text = "Raj likes to play football, however he is not too fond of tennis."
+print( text)
+
+filtered_sentence = remove_stopwords(text)
+print('\n After removing Stop words: ',filtered_sentence)
+
+
+all_stopwords = gensim.parsing.preprocessing.STOPWORDS
+print('\n Stop words in Gensim: ', all_stopwords)
+
+
+from gensim.parsing.preprocessing import STOPWORDS
+all_stopwords_gensim = STOPWORDS.union(set(['likes', 'play']))
+
+text = "Pratham likes to play football, however he is not too fond of tennis."
+text_tokens = word_tokenize(text)
+print(text_tokens)
+
+tokens_without_sw = [word for word in text_tokens if not word in all_stopwords_gensim]
+print("\n After adding likes & play in stop word collection: ",tokens_without_sw)
+
+from gensim.parsing.preprocessing import STOPWORDS
+all_stopwords_gensim = STOPWORDS
+sw_list = {"not"}
+
+all_stopwords_gensim = STOPWORDS.difference(sw_list)
+text = "Pratham likes to play football, however he is not too fond of tennis."
+text_tokens = word_tokenize(text)
+
+
+tokens_without_sw = [word for word in text_tokens if not word in all_stopwords_gensim]
+print(tokens_without_sw)
+
+
+
+**Using Spacy Adding and Removing Stop Words in Default Spacy Stop Words List**
+
+
+import spacy
+import nltk
+from nltk.tokenize import word_tokenize
+
+# Remember to dowbnload (  python -m spacy download en_core_web_trf  )
+sp = spacy.load('en_core_web_trf')
+
+
+#add the word play to the NLTK stop word collection
+all_stopwords = sp.Defaults.stop_words
+all_stopwords.add("play")
+text = "Pratham likes to play football, however he is not too fond of tennis."
+text_tokens = word_tokenize(text)
+tokens_without_sw = [word for word in text_tokens if not word in all_stopwords]
+print(tokens_without_sw)
+
+#remove 'not' from stop word collection
+all_stopwords.remove('not')
+tokens_without_sw = [word for word in text_tokens if not word in all_stopwords]
+print(tokens_without_sw)
+
+
+
+**4 a): Tokenization using Python’s split() function**`
+
+
+text = """Founded in 2002, SpaceX’s mission is to enable humans to become a spacefaring civilization and a multi-planet species by building a self-sustaining city on Mars. In 2008, SpaceX’s Falcon 1 became the first privately developed liquid-fuel launch vehicle to orbit the Earth."""
+# Splits at space
+a=text.split()
+print(a)
+
+
+
+**4 b): Tokenization using Regular Expressions (RegEx)**
+
+import re
+
+text = """Natural language processing is fascinating, Do you agree ?"""
+tokens = re.findall("[\w]+", text)
+tokens
+
+
+
+**4 c): Tokenization using NLTK**
+
+
+
+import nltk
+nltk.download('punkt')
+from nltk.tokenize import word_tokenize
+
+text = """Machine learning enables computers to learn from data. It is a key component of artificial intelligence."""
+a=word_tokenize(text)
+print("This is Practical using NLTK Word Tokenize.")
+print(a)
+
+
+
+**4 d) Tokenization using the spaCy library**
+
+
+from spacy.lang.en import English
+nlp = English()
+text = """Machine learning enables computers to learn from data. It is a key component of artificial intelligence."""
+
+my_doc = nlp(text)
+token_list = []
+for token in my_doc:
+    token_list.append(token.text)
+
+token_list
+print(token_list)
+
+
+
+**4 e) Tokenization using Keras.**
+
+from tensorflow.keras.preprocessing.text import text_to_word_sequence
+text = """Machine learning enables computers to learn from data. It is a key component of artificial intelligence."""
+result = text_to_word_sequence(text)
+print(result)
+
+
+
+**4 f)Tokenization using Gensim**
+
+
+from gensim.utils import tokenize
+text = """Machine learning enables computers to learn from data. It is a key component of artificial intelligence."""
+list(tokenize(text))
+
+
+
+
+**5 Aim: Illustrate part of speech tagging.**
+
+**a. Part of speech Tagging and chunking of user defined text.**
+
+
+import nltk
+from nltk import pos_tag
+from nltk import RegexpParser
+nltk.download()
+
+text ="Everything to permit us.".split()
+print("After Split:",text)
+nltk.download('averaged_perceptron_tagger')
+tokens_tag = pos_tag(text)
+print("After Token:",tokens_tag)
+
+patterns= """mychunk:{<NN.?>*<VBD.?>*<JJ.?>*<CC>?}"""
+chunker = RegexpParser(patterns)
+print("After Regex:",chunker)
+output = chunker.parse(tokens_tag)
+print("After Chunking",output)
+
+
+**b. Named Entity recognition of user defined text.**
+
+
+import nltk
+import spacy
+from spacy import displacy
+from collections import Counter
+import en_core_web_sm
+nlp = en_core_web_sm.load()
+
+
+ex = 'India fined Microsoft a  $200 billion on Monday'
+
+ex = nlp('India fined Microsoft a  $200 billion on Monday')
+
+print([(X.text, X.label_) for X in ex.ents])
+
+
+
+**c. Named Entity recognition with diagram using NLTK corpus – treebank**
+
+
+
+import nltk
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+
+sentence = 'Newton first suggested the name "apple gravity" at New Town, America'
+words = nltk.word_tokenize(sentence)
+pos_tagged = nltk.pos_tag(words)
+nltk.download('maxent_ne_chunker')
+nltk.download('words')
+
+ne_tagged = nltk.ne_chunk(pos_tagged)
+print("NE tagged text:")
+print(ne_tagged)
+print()
+print("Recognized named entities:")
+for ne in ne_tagged:
+    if hasattr(ne, "label"):
+        print(ne.label(), ne[0:])
+        ne_tagged.draw()
+
+
+
+
+**6a) Define grammar using nltk. Analyze a sentence using the same**
+
+
+
+import nltk
+from nltk import RecursiveDescentParser
+grammer = nltk.CFG.fromstring("""
+S -> NP VP
+VP -> V NP | V NP PP
+PP -> P NP
+V -> "saw" 
+NP ->"Mary" | "Bob" | Det N 
+Det -> "a" | "an" | "the"
+N -> "man" | "dog" | "cat"
+P -> "in" | "on"
+""")
+
+sent = "Mary saw Bob".split()
+rd_parser = nltk.RecursiveDescentParser(grammer)
+for tree in rd_parser.parse(sent):
+    print(tree)
+
+
+
+
+**Using ChartParser**
+
+
+
+import nltk
+nltk.download('punkt')
+from nltk import tokenize
+
+grammar1 = nltk.CFG.fromstring("""
+S -> VP
+VP -> VP NP
+NP -> Det NP
+Det -> 'that'
+NP -> 'flight'
+VP -> 'Book'
+""")
+
+sentence = "Book that flight"
+
+for index in range(len(sentence)):
+  all_tokens = tokenize.word_tokenize(sentence)
+print("Token: ",all_tokens)
+parser = nltk.ChartParser(grammar1)
+for tree in parser.parse(all_tokens):
+  print(tree)
+
+
+
+
+**6b) Accept the input string with Regular expression of Finite Automaton: 101+.**
+
+
+def FA(s):
+    if len(s) < 3:
+        return "Rejected"
+        
+    if s[0] == '1':  
+        if s[1] == '0': 
+            if s[2] == '1':  
+                
+                for i in range(3, len(s)):  
+                    if s[i] != '1':  # If any character is not '1'
+                        return "Rejected"  
+                return "Accepted"
+    
+
+    return "Rejected"
+
+inputs = ['1', '10101', '101', '10111', '01010', '100', '', '10111101', '1011111']
+
+for i in inputs:
+    print(f"Input: {i} - {FA(i)}")
+
+
+
+
+# **6c) Accept the input string with Regular expression of FA: (a+b) * bba.**.
+
+
+
+def FA(s):
+    size = 0
+    # Scan the complete string and make sure that it contains only 'a' & 'b'
+    for i in s:
+        if i == 'a' or i == 'b':
+            size += 1
+        else:
+            return "Rejected"
+
+    if size >= 3:
+        if s[size-3] == 'b':
+            if s[size-2] == 'b':
+                if s[size-1] == 'a':
+                    return "Accepted"
+                return "Rejected" 
+            return "Rejected" 
+        return "Rejected" 
+    return "Rejected" 
+
+inputs = ['bba', 'ababbba', 'abba', 'abb', 'baba', 'bbb', '']
+
+for i in inputs:
+    print(f"Input: {i} - {FA(i)}")
+
+
+
+# 6d) Implementation of Deductive Chart Parsing using context free grammar and a given sentence.
+
+
+import nltk
+from nltk import CFG, ChartParser
+from nltk import word_tokenize
+
+grammar1 = CFG.fromstring("""
+S -> NP VP
+PP -> P NP
+NP -> Det N | Det N PP | 'I'
+VP -> V NP | VP PP
+Det -> 'a' | 'my'
+N -> 'bird' | 'balcony'
+V -> 'saw'
+P -> 'in'
+""")
+
+sentence = "I saw a bird in my balcony"
+all_tokens = word_tokenize(sentence)
+print(all_tokens)
+
+print("Chart Parser")
+parser = ChartParser(grammar1)
+
+for tree in parser.parse(all_tokens):
+    print(tree)
+    tree.draw()
+
+
+
+** 7  PART A : STUDY PORTER STEMMER, LANCASTER STEMMER, REGEXP STEMMER 
+AND SNOWBALL STEMMER**
+
+**a. Porter Stemmer**
+
+
+
+import nltk
+nltk.download('punkt')
+from nltk.stem import PorterStemmer
+from nltk.tokenize import sent_tokenize, word_tokenize
+
+porter = PorterStemmer()
+
+terms = ["gene", "genes", "genesis", "genetic", "generic", "general"]
+
+for each_term in terms:
+    print(porter.stem(each_term))
+
+sentence = "Heya Raj, today is our practical exams, we are very much excited."
+
+print("\n Performing porter stemming on a sentence")
+words = word_tokenize(sentence, language = 'english')
+for each_word in words:
+    print(porter.stem(each_word))
+
+
+
+
+
+**b. Lancaster Stemmer**`
+
+
+
+import nltk
+nltk.download('punkt')
+from nltk.stem import LancasterStemmer
+from nltk.tokenize import sent_tokenize, word_tokenize
+
+lancaster = LancasterStemmer()
+
+terms = ["enjoy", "enjoying", "enjoyed", "enjoyable", "enjoyment", "enjoyful"]
+
+print("\n Performing lancaster stemming on the words")
+for each_term in terms:
+    print(lancaster.stem(each_term))
+
+sentence = "Heya Raj, today is our practical exams, we are very much excited."
+
+print("\n. Performing lancaster stemming on a sentence")
+words = word_tokenize(sentence, language = 'english')
+for each_word in words:
+    print(lancaster.stem(each_word))
+
+print("\n Performing lancaster stemming on a text file - one sentence at a time")
+# Treating the text file as a collection of sentences
+file = open("Token.txt")
+my_lines_list = file.readlines()
+# Accessing one line at a time from the text file
+words = word_tokenize(my_lines_list[0], language = 'english')
+for each_word in words:
+    print(lancaster.stem(each_word))
+
+
+
+
+**c. Snowball Stemmer**n.
+
+
+
+
+import nltk
+nltk.download('punkt')
+from nltk.stem.snowball import SnowballStemmer
+
+snowball_english = SnowballStemmer("english")
+snowball_english = SnowballStemmer("dutch")
+
+print("\n Performing snowball stemming one word")
+word = snowball_english.stem("Hybernating")
+print(word)
+
+terms = ["Raju", "cheerful", "bravery","drawing", "satisfactorily", "publisher", "painful", "hardworking",
+"keys"]
+
+print("\n Performing snowball stemming on english language words")
+for each_term in terms:
+    print(snowball_english.stem(each_term))
+
+terms2 = ["Raju", "bessen", "vriendelijkheid", "hobbelig"]
+
+print("\n Performing snowball stemming on dutch language words")
+for each_term in terms2:
+    print(snowball_english.stem(each_term))
+
+
+
+
+
+**d. RegExp Stemmer**
+
+
+
+import nltk
+nltk.download('punkt')
+from nltk.stem import RegexpStemmer
+
+regexp = RegexpStemmer('ing$|s$|e$|able$|ment$|less$|ly$', min=4)
+
+print("\n Performing regexp stemming on one word at a time")
+print(regexp.stem('cars'))
+print(regexp.stem('bees'))
+print(regexp.stem('compute'))
+
+terms = ["Rajs", "stemming", "physically", "easy","popstar", "effortless", "aknowledgement","vegetables",
+"advisable"]
+
+print("\n2. Performing regexp stemming on a list of words")
+for each_term in terms:
+    print(regexp.stem(each_term))
+
+
+
+**PART B : STUDY WORDNET LEMMATIZER**
+
+
+
+import nltk
+nltk.download('wordnet')
+nltk.download('punkt')
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+
+wordnet = WordNetLemmatizer()
+
+print("\n1. Performing WordNet lemmatization on single Words")
+print(wordnet.lemmatize("corpora"))
+print(wordnet.lemmatize("best"))
+print(wordnet.lemmatize("geese"))
+print(wordnet.lemmatize("feet"))
+print(wordnet.lemmatize("cacti"))
+
+print("\n Performing WordNet lemmatization on a sentence")
+
+sentence = "Hey Raj, how are you doing? Keep learning continously for better result!"
+
+list_words = nltk.word_tokenize(sentence)
+print("\nConverting the sentence into a list of words")
+print(list_words)
+
+final = ' '.join([wordnet.lemmatize(each_word, pos = 'v') for each_word in list_words])
+print("\nAfter applying wordnet lemmatizer, the result is....")
+print(final)
+
+
+
+
+
+8 implement Naive bayes classifer
+
+
+
+
+import sklearn
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB, MultinomialNB
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+breastcancer = datasets.load_breast_cancer()
+print("\nFeatures of breastcancer dataset : ", breastcancer.feature_names)
+print("\nLabels of breastcancer dataset : ", breastcancer.target_names)
+print("\nShape of breastcancer dataset : ", breastcancer.data.shape)
+
+R = breastcancer.data
+T = breastcancer.target
+
+# Splitting the dataset into training set and testing set
+Rtrain, Rtest, Ttrain, Ttest = train_test_split(R, T, test_size = 0.2, random_state = 0)
+
+# 1. Using the Gaussian Naive Bayes Classifier
+gauss = GaussianNB()
+
+# Training the Gaussian Naive Bayes
+gauss.fit(Rtrain,Ttrain)
+
+# Making predictions
+pred = gauss.predict(Rtest)
+
+# Generating classification report ]
+gcr = classification_report(Ttest,pred)
+print("\nClassification Report gaussian : \n", gcr)
+
+
+# Generating confusion matrix
+gcm = confusion_matrix(Ttest, pred)
+print("\nConfusion matrix gaussian : \n", gcm)
+
+# Evaluating the naive bayes classifier
+accuracy = accuracy_score(Ttest, pred)
+print("\nAccuracy : ", accuracy * 100)
+
+
+
