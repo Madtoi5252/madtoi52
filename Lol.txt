@@ -1,0 +1,871 @@
+P1. **Performing matrix multiplication and finding eigen vectors and eigen values using TensorFlow**
+
+
+import tensorflow as tf
+
+m = tf.constant([[1, 2], [2, 3]], dtype=tf.float32)
+eigenvalues, eigenvectors = tf.linalg.eig(m)
+print(eigenvalues.numpy())
+print(eigenvectors.numpy())
+
+import numpy as np
+m = np.array([[1, 2],
+			[2, 3]])
+print("Printing the Original square array:\n",m)
+w, v = np.linalg.eig(m)
+print("Printing the Eigen values of the given square array:\n",w)
+print("Printing Right Eigen Vectors of the given square array:\n",v)
+
+import numpy as np
+m = np.array([[1, 2, 3],
+			[2, 3, 4],
+			[4, 5, 6]])
+
+print("Printing the Original square array:\n",m)
+w, v = np.linalg.eig(m)
+
+print("Eigen values of the given square array:\n",w)
+print("Eigenvectors of the given square array:\n",v)
+
+!pip install tensorflow
+!pip install tensorflow[and-cuda]
+
+import tensorflow as tf
+e_matrix_A = tf.random.uniform([2, 2], minval=3, maxval=10, dtype=tf.float32, name="matrixA")
+print("Matrix A: \n{}\n\n".format(e_matrix_A))
+
+eigen_values_A, eigen_vectors_A = tf.linalg.eigh(e_matrix_A)
+print("Eigen Vectors: \n{} \n\nEigen Values: \n{}\n".format(eigen_vectors_A, eigen_values_A))
+
+e_matrix_A = tf.random.uniform([3, 3], minval=3, maxval=10, dtype=tf.float32, name="matrixA")
+print("Matrix A: \n{}\n\n".format(e_matrix_A))
+
+eigen_values_A, eigen_vectors_A = tf.linalg.eigh(e_matrix_A)
+print("Eigen Vectors: \n{} \n\nEigen Values: \n{}\n".format(eigen_vectors_A, eigen_values_A))
+
+
+
+
+
+
+P2.**Solving XOR problem using deep feed forward network**
+
+
+
+import numpy as np 
+def unitStep(v): 
+    if v >= 0: 
+        return 1
+    else: 
+        return 0
+
+def perceptronModel(x, w, b): 
+    v = np.dot(w, x) + b 
+    y = unitStep(v) 
+    return y 
+
+def NOT_logicFunction(x): 
+    wNOT = -1
+    bNOT = 0.5
+    return perceptronModel(x, wNOT, bNOT) 
+
+def AND_logicFunction(x): 
+    w = np.array([1, 1]) 
+    bAND = -1.5
+    return perceptronModel(x, w, bAND)
+
+def OR_logicFunction(x): 
+    w = np.array([1, 1]) 
+    bOR = -0.5
+    return perceptronModel(x, w, bOR)
+
+def XOR_logicFunction(x):
+  y1 = AND_logicFunction(x)
+  y2 = OR_logicFunction(x)
+  y3 = NOT_logicFunction(y1)
+  final_x = np.array([y2, y3])
+  finalOutput = AND_logicFunction(final_x)
+  y3 = NOT_logicFunction(y1)
+  return finalOutput
+
+test1 = np.array([0, 1]) 
+test2 = np.array([1, 1]) 
+test3 = np.array([0, 0]) 
+test4 = np.array([1, 0])
+
+
+print("XOR({}, {}) = {}".format(0, 1, XOR_logicFunction(test1)))
+print("XOR({}, {}) = {}".format(1, 1, XOR_logicFunction(test2)))
+print("XOR({}, {}) = {}".format(0, 0, XOR_logicFunction(test3)))
+print("XOR({}, {}) = {}".format(1, 0, XOR_logicFunction(test4)))
+
+
+
+
+
+
+
+
+P3. **Implementing deep neural network for performing binary classification task.**
+
+
+
+import pandas as pd
+import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense
+from scikeras.wrappers import KerasClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+dataframe = pd.read_csv("sonar.all-data", header=None)
+dataset = dataframe.values
+X = dataset[:,0:60].astype(float)
+Y = dataset[:,60]
+
+encoder = LabelEncoder()
+encoder.fit(Y)
+encoded_Y = encoder.transform(Y)
+
+def create_baseline():
+	model = Sequential()
+	model.add(Dense(60, input_dim=60, activation='relu'))
+	model.add(Dense(1, activation='sigmoid'))
+	model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+	return model
+
+estimator = KerasClassifier(build_fn=create_baseline, epochs=100, batch_size=5, verbose=0)
+kfold = StratifiedKFold(n_splits=10, shuffle=True)
+results = cross_val_score(estimator, X, encoded_Y, cv= kfold)
+print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+
+estimators = []
+estimators.append(('standardize', StandardScaler()))
+estimators.append(('mlp', KerasClassifier(build_fn=create_baseline, epochs=100, batch_size=5, verbose=0)))
+pipeline = Pipeline(estimators)
+results = cross_val_score(pipeline, X, encoded_Y, cv=kfold)
+print("Standardized: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100))
+
+
+def create_smaller():
+	model = Sequential()
+	model.add(Dense(30, input_dim=60, activation='relu'))
+	model.add(Dense(1, activation='sigmoid'))
+	model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+	return model
+
+estimators = []
+estimators.append(('standardize', StandardScaler()))
+estimators.append(('mlp', KerasClassifier(build_fn=create_smaller, epochs=100, batch_size=5, verbose=0)))
+pipeline = Pipeline(estimators)
+kfold = StratifiedKFold(n_splits=10, shuffle=True)
+results = cross_val_score(pipeline, X, encoded_Y, cv=kfold)
+print("Smaller: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+
+def create_larger():
+	model = Sequential()
+	model.add(Dense(60, input_dim=60, activation='relu'))
+	model.add(Dense(30, activation='relu'))
+	model.add(Dense(1, activation='sigmoid'))
+	model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+	return model
+    
+estimators = []
+estimators.append(('standardize', StandardScaler()))
+estimators.append(('mlp', KerasClassifier(build_fn=create_larger, epochs=100, batch_size=5, verbose=0)))
+pipeline = Pipeline(estimators)
+kfold = StratifiedKFold(n_splits=10, shuffle=True)
+results = cross_val_score(pipeline, X, encoded_Y, cv=kfold)
+print("Larger: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+
+
+
+
+
+P4 A.  using deep feed forward network with two hidden layers for performing classification and predicting the class
+
+
+
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn.datasets import make_blobs
+from sklearn.preprocessing import MinMaxScaler
+
+X,Y=make_blobs(n_samples=100,centers=2,n_features=2,random_state=1)
+
+scalar=MinMaxScaler()
+scalar.fit(X)
+X=scalar.transform(X)
+
+model=Sequential()
+model.add(Dense(4,input_dim=2,activation='relu'))
+model.add(Dense(4,activation='relu'))
+model.add(Dense(1,activation='sigmoid'))
+model.compile(loss='binary_crossentropy',optimizer='adam')
+model.summary()
+
+model.fit(X,Y,epochs=100)
+
+Xnew,Yreal=make_blobs(n_samples=3,centers=2,n_features=2,random_state=1)
+Xnew=scalar.transform(Xnew)
+
+Ynew=model.predict(Xnew)
+
+for i in range(len(Xnew)):
+ print("X=%s,Predicted=%s,Desired=%s"%(Xnew[i],Ynew[i],Yreal[i]))
+
+
+P4 B.   using deep feed forward network with two hidden layers for performing classification and predicting the probability of class
+
+
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn.datasets import make_blobs
+from sklearn.preprocessing import MinMaxScaler
+
+X,Y=make_blobs(n_samples=100,centers=2,n_features=2,random_state=1)
+
+scalar=MinMaxScaler()
+scalar.fit(X)
+X=scalar.transform(X)
+
+model=Sequential()
+model.add(Dense(4,input_dim=2,activation='relu'))
+model.add(Dense(4,activation='relu'))
+model.add(Dense(1,activation='sigmoid'))
+model.compile(loss='binary_crossentropy',optimizer='adam')
+model.summary()
+
+model.fit(X,Y,epochs=200)
+
+Xnew,Yreal=make_blobs(n_samples=3,centers=2,n_features=2,random_state=1)
+
+Xnew=scalar.transform(Xnew)
+Yclass=model.predict(Xnew)
+
+import numpy as np
+def predict_prob(number):
+  return [number[0],1-number[0]]
+
+y_prob = np.array(list(map(predict_prob, model.predict(Xnew))))
+y_prob 
+
+for i in range(len(Xnew)):
+ print("X=%s,Predicted_probability=%s,Predicted_class=%s"%(Xnew[i],y_prob[i],Yclass[i]))
+
+#second way 
+
+predict_prob=model.predict([Xnew])
+
+predict_classes=np.argmax(predict_prob,axis=1)
+predict_classes
+
+
+
+
+
+
+
+P5 . Evaluating feed forward deep network for regression using KFold cross validation
+
+
+
+
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.losses import sparse_categorical_crossentropy
+from tensorflow.keras.optimizers import Adam
+import matplotlib.pyplot as plt
+
+batch_size = 50
+img_width, img_height, img_num_channels = 32, 32, 3
+loss_function = sparse_categorical_crossentropy
+no_classes = 100
+no_epochs = 10  
+optimizer = Adam()
+verbosity = 1
+
+(input_train, target_train), (input_test, target_test) = cifar10.load_data()
+
+input_shape = (img_width, img_height, img_num_channels)
+
+input_train = input_train.astype('float32')
+input_test = input_test.astype('float32')
+
+input_train = input_train / 255
+input_test = input_test / 255
+
+model = Sequential()
+model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(256, activation='relu'))
+model.add(Dense(128, activation='relu'))
+model.add(Dense(no_classes, activation='softmax'))
+
+model.summary()
+
+model.compile(loss=loss_function, optimizer=optimizer,metrics=['accuracy'])
+
+history = model.fit(input_train, target_train, batch_size=batch_size, epochs=no_epochs, verbose=verbosity)
+
+score = model.evaluate(input_test, target_test, verbose=0)
+print(f'Test loss: {score[0]} / Test accuracy: {score[1]}')
+
+plt.plot(history.history['loss'])
+plt.title('Validation loss history')
+plt.ylabel('Loss value')
+plt.xlabel('No. epoch')
+plt.show()
+
+plt.plot(history.history['accuracy'])
+plt.title('Validation accuracy history')
+plt.ylabel('Accuracy value (%)')
+plt.xlabel('No. epoch')
+plt.show()
+
+from sklearn.model_selection import KFold
+import numpy as np
+
+
+batch_size = 50
+img_width, img_height, img_num_channels = 32, 32, 3
+loss_function = sparse_categorical_crossentropy
+no_classes = 10 
+no_epochs = 10
+verbosity = 1
+num_folds = 5
+
+(input_train, target_train), (input_test, target_test) = cifar10.load_data()
+
+input_shape = (img_width, img_height, img_num_channels)
+
+input_train = input_train.astype('float32')
+input_test = input_test.astype('float32')
+
+input_train = input_train / 255.0
+input_test = input_test / 255.0
+
+acc_per_fold = []
+loss_per_fold = []
+
+inputs = np.concatenate((input_train, input_test), axis=0)
+targets = np.concatenate((target_train, target_test), axis=0)
+
+kfold = KFold(n_splits=num_folds, shuffle=True)
+
+fold_no = 1
+for train, test in kfold.split(inputs, targets):
+    
+    model = Sequential()
+    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Flatten())
+    model.add(Dense(256, activation='relu'))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(no_classes, activation='softmax'))
+
+    optimizer = Adam()
+    
+    model.compile(loss=loss_function,
+                  optimizer=optimizer,
+                  metrics=['accuracy'])
+    print(f'Training for fold {fold_no} ...')
+
+    history = model.fit(inputs[train], targets[train],
+                        batch_size=batch_size,
+                        epochs=no_epochs,
+                        verbose=verbosity)
+
+    scores = model.evaluate(inputs[test], targets[test], verbose=0)
+    print(f'Score for fold {fold_no}: {model.metrics_names[0]} of {scores[0]}; {model.metrics_names[1]} of {scores[1] * 100}%')
+    acc_per_fold.append(scores[1] * 100)
+    loss_per_fold.append(scores[0])
+    fold_no += 1
+    
+print('Score per fold')
+for i in range(0, len(acc_per_fold)):
+    print(f'> Fold {i + 1} - Loss: {loss_per_fold[i]} - Accuracy: {acc_per_fold[i]}%')
+print('Average scores for all folds:')
+print(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)})')
+print(f'> Loss: {np.mean(loss_per_fold)}')
+
+
+
+
+
+P6 . Implementing regularized to avoid overfitting in binery classification using tensorflow
+
+
+
+
+
+from matplotlib import pyplot
+from sklearn.datasets import make_moons
+from keras.models import Sequential
+from keras.layers import Dense
+
+X,Y=make_moons(n_samples=100,noise=0.2,random_state=1)
+n_train=30
+trainX,testX=X[:n_train,:],X[n_train:]
+trainY,testY=Y[:n_train],Y[n_train:]
+
+print(trainX.shape)
+print(trainY.shape)
+print(testX.shape)
+print(testY.shape)
+
+model=Sequential()
+model.add(Dense(500,input_dim=2,activation='relu'))
+
+model.add(Dense(1,activation='sigmoid'))
+model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+model.summary()
+
+history=model.fit(trainX,trainY,validation_data=(testX,testY),epochs=100)
+
+pyplot.plot(history.history['accuracy'],label='train')
+pyplot.plot(history.history['val_accuracy'],label='test')
+pyplot.legend()
+pyplot.show()
+
+from keras.regularizers import l2
+model=Sequential()
+model.add(Dense(500,input_dim=2,activation='relu',kernel_regularizer=l2(0.001)))
+model.add(Dense(1,activation='sigmoid'))
+model.summary()
+
+model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+history=model.fit(trainX,trainY,validation_data=(testX,testY),epochs=100)
+
+pyplot.plot(history.history['accuracy'],label='train')
+pyplot.plot(history.history['val_accuracy'],label='test')
+pyplot.legend()
+pyplot.show()
+
+from keras.regularizers import l1_l2
+model=Sequential()
+model.add(Dense(500,input_dim=2,activation='relu',kernel_regularizer=l1_l2(l1=0.001,l2=0.001)))
+model.add(Dense(1,activation='sigmoid'))
+
+model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+model.summary()
+
+history=model.fit(trainX,trainY,validation_data=(testX,testY),epochs=100)
+
+pyplot.plot(history.history['accuracy'],label='train')
+pyplot.plot(history.history['val_accuracy'],label='test')
+pyplot.legend()
+pyplot.show()
+
+
+
+
+
+P7 . Implementing text classification with RNN
+
+
+
+
+import numpy as np
+import tensorflow_datasets as tfds
+import tensorflow as tf
+import matplotlib.pyplot as plt
+tfds.disable_progress_bar()
+
+def plot_graphs(history, metric):
+    plt.plot(history.history[metric])
+    plt.plot(history.history['val_' + metric], '')
+    plt.xlabel("Epochs")
+    plt.ylabel(metric)
+    plt.legend([metric, 'val_' + metric])
+
+dataset, info = tfds.load('imdb_reviews', with_info=True, as_supervised=True)
+train_dataset, test_dataset = dataset['train'], dataset['test']
+
+BUFFER_SIZE = 10000
+BATCH_SIZE = 64
+
+train_dataset = train_dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+test_dataset = test_dataset.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+
+VOCAB_SIZE = 1000
+encoder = tf.keras.layers.TextVectorization(max_tokens=VOCAB_SIZE)
+encoder.adapt(train_dataset.map(lambda text, label: text))
+
+model = tf.keras.Sequential([
+    encoder,
+    tf.keras.layers.Embedding(input_dim=len(encoder.get_vocabulary()), output_dim=64, mask_zero=True),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(1)
+])
+print([layer.supports_masking for layer in model.layers])
+
+# Predict on a sample text without padding
+sample_text = ('The movie was cool. The animation and the graphics were out of this world. I would recommend this movie.')
+predictions = model.predict(np.array([sample_text]))
+print(predictions[0])
+
+# Predict on a sample text with padding
+padding = "the " * 2000
+predictions = model.predict(np.array([sample_text, padding]))
+print(predictions[0])
+
+# Compile the model
+model.compile(loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+              optimizer=tf.keras.optimizers.Adam(1e-4),
+              metrics=['accuracy'])
+
+# Train the model
+history = model.fit(train_dataset, epochs=10, validation_data=test_dataset, validation_steps=30)
+
+# Evaluate the model
+test_loss, test_acc = model.evaluate(test_dataset)
+print('Test Loss:', test_loss)
+print('Test Accuracy:', test_acc)
+
+# Plot training and validation metrics
+plt.figure(figsize=(16, 8))
+plt.subplot(1, 2, 1)
+plot_graphs(history, 'accuracy')
+plt.ylim(None, 1)
+plt.subplot(1, 2, 2)
+plot_graphs(history, 'loss')
+plt.ylim(0, None)
+
+model = tf.keras.Sequential([
+    encoder,
+    tf.keras.layers.Embedding(len(encoder.get_vocabulary()), 64, mask_zero=True),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True)),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dense(1)
+])
+# Compile the model with stacked LSTM layers
+model.compile(loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+              optimizer=tf.keras.optimizers.Adam(1e-4),
+              metrics=['accuracy'])
+
+# Train the model with stacked LSTM layers
+history = model.fit(train_dataset, epochs=10, validation_data=test_dataset, validation_steps=30)
+
+# Evaluate the model with stacked LSTM layers
+test_loss, test_acc = model.evaluate(test_dataset)
+print('Test Loss:', test_loss)
+print('Test Accuracy:', test_acc)
+
+# Plot training and validation metrics for the stacked model
+plt.figure(figsize=(16, 6))
+plt.subplot(1, 2, 1)
+plot_graphs(history, 'accuracy')
+plt.subplot(1, 2, 2)
+plot_graphs(history, 'loss')
+plt.show()
+
+
+
+
+
+P8 . implementation of autoencoders
+
+
+
+
+import keras
+from keras import layers
+from keras.datasets import mnist
+import numpy as np
+import matplotlib.pyplot as plt
+from keras import regularizers
+from keras.datasets import mnist
+encoding_dim = 32 
+input_img = keras.Input(shape=(784,))
+
+# "encoded" is the encoded representation of the input
+encoded = layers.Dense(encoding_dim, activation='relu')(input_img)
+
+# "decoded" is the lossy reconstruction of the input
+decoded = layers.Dense(784, activation='sigmoid')(encoded)
+
+# This model maps an input to its reconstruction
+autoencoder = keras.Model(input_img, decoded)
+
+# This model maps an input to its encoded representation
+encoder = keras.Model(input_img, encoded)
+
+# This is our encoded (32-dimensional) input
+encoded_input = keras.Input(shape=(encoding_dim,))
+# Retrieve the last layer of the autoencoder model
+decoder_layer = autoencoder.layers[-1]
+# Create the decoder model
+decoder = keras.Model(encoded_input, decoder_layer(encoded_input))
+
+#Now let's train our autoencoder to reconstruct MNIST digits.
+
+#First, we'll configure our model to use a per-pixel binary crossentropy loss, and the Adam optimizer:
+
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+
+#Let's prepare our input data. We're using MNIST digits, and we're discarding the labels (since we're only interested in encoding/decoding the input images).
+
+
+(x_train, _), (x_test, _) = mnist.load_data()
+x_train = x_train.astype('float32') / 255.
+x_test = x_test.astype('float32') / 255.
+x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
+x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
+print(x_train.shape)
+print(x_test.shape)
+
+# Now let's train our autoencoder for 50 epochs:
+autoencoder.fit(x_train, x_train,epochs=50,batch_size=256,
+                shuffle=True,validation_data=(x_test, x_test))
+
+# Encode and decode some digits from the test set
+encoded_imgs = encoder.predict(x_test)
+decoded_imgs = decoder.predict(encoded_imgs)
+
+# Use Matplotlib 
+n = 10  # How many digits we will display
+plt.figure(figsize=(20, 4))
+for i in range(n):
+    # Display original
+    ax = plt.subplot(2, n, i + 1)
+    plt.imshow(x_test[i].reshape(28, 28))
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+
+    # Display reconstruction
+    ax = plt.subplot(2, n, i + 1 + n)
+    plt.imshow(decoded_imgs[i].reshape(28, 28))
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+plt.show()
+
+"""Adding a sparsity constraint on the encoded representations"""
+encoding_dim = 32
+input_img = keras.Input(shape=(784,))
+# Add a Dense layer with a L1 activity regularizer
+encoded = layers.Dense(encoding_dim, activation='relu',
+                activity_regularizer=regularizers.l1(10e-5))(input_img)
+decoded = layers.Dense(784, activation='sigmoid')(encoded)
+
+autoencoder = keras.Model(input_img, decoded)
+encoder = keras.Model(input_img, encoded)
+encoded_input = keras.Input(shape=(encoding_dim,))
+decoder_layer = autoencoder.layers[-1]
+decoder = keras.Model(encoded_input, decoder_layer(encoded_input))
+
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+
+(x_train, _), (x_test, _) = mnist.load_data()
+
+# We will normalize all values between 0 and 1 and we will flatten the 28x28 images into vectors of size 784.
+
+x_train = x_train.astype('float32') / 255.
+x_test = x_test.astype('float32') / 255.
+x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
+x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
+print(x_train.shape)
+print(x_test.shape)
+
+
+# Now let's train our autoencoder for 50 epochs:
+
+autoencoder.fit(x_train, x_train,epochs=50,batch_size=256,
+                shuffle=True,validation_data=(x_test, x_test))
+
+encoded_imgs = encoder.predict(x_test)
+decoded_imgs = decoder.predict(encoded_imgs)
+
+n = 10  # How many digits we will display
+plt.figure(figsize=(20, 4))
+for i in range(n):
+    # Display original
+    ax = plt.subplot(2, n, i + 1)
+    plt.imshow(x_test[i].reshape(28, 28))
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+
+    ax = plt.subplot(2, n, i + 1 + n)
+    plt.imshow(decoded_imgs[i].reshape(28, 28))
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+plt.show()
+
+"""Deep autoencoder"""
+input_img = keras.Input(shape=(784,))
+encoded = layers.Dense(128, activation='relu')(input_img)
+encoded = layers.Dense(64, activation='relu')(encoded)
+encoded = layers.Dense(32, activation='relu')(encoded)
+
+decoded = layers.Dense(64, activation='relu')(encoded)
+decoded = layers.Dense(128, activation='relu')(decoded)
+decoded = layers.Dense(784, activation='sigmoid')(decoded)
+
+autoencoder = keras.Model(input_img, decoded)
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+autoencoder.fit(x_train, x_train,epochs=100,batch_size=256,
+                shuffle=True,validation_data=(x_test, x_test))
+
+encoded_imgs = encoder.predict(x_test)
+decoded_imgs = decoder.predict(encoded_imgs)
+
+plt.figure(figsize=(20, 4))
+for i in range(n):
+    # Display original
+    ax = plt.subplot(2, n, i + 1)
+    plt.imshow(x_test[i].reshape(28, 28))
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+
+    ax = plt.subplot(2, n, i + 1 + n)
+    plt.imshow(decoded_imgs[i].reshape(28, 28))
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+plt.show()
+
+
+
+
+
+P9 . **Implementation of convolutional neural network to predict numbers from number**
+
+
+
+import matplotlib.pyplot as plt
+import tensorflow as tf
+import tensorflow.keras.layers  as KL
+import tensorflow.keras.models  as KM
+mnist = tf.keras.datasets.mnist
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+print(X_train.shape)
+print(y_train.shape)
+print(y_test.shape)
+print(X_test.shape)
+
+plt.imshow(X_train[2])
+plt.show()
+plt.imshow(X_train[2], cmap=plt.cm.binary)
+print(X_train[2])
+
+X_train = tf.keras.utils.normalize(X_train, axis=1) 
+X_test = tf.keras.utils.normalize(X_test, axis=1)
+plt.imshow(X_train[2], cmap=plt.cm.binary)
+print(X_train[2])
+
+## Model
+inputs = KL.Input(shape=(28, 28, 1))
+c = KL.Conv2D(32, (3, 3), padding="valid", activation=tf.nn.relu)(inputs)
+m = KL.MaxPool2D((2, 2), (2, 2))(c)
+d = KL.Dropout(0.5)(m)
+c = KL.Conv2D(64, (3, 3), padding="valid", activation=tf.nn.relu)(d)
+m = KL.MaxPool2D((2, 2), (2, 2))(c)
+d = KL.Dropout(0.5)(m)
+c = KL.Conv2D(128, (3, 3), padding="valid", activation=tf.nn.relu)(d)
+f = KL.Flatten()(c)
+outputs = KL.Dense(10, activation=tf.nn.softmax)(f)
+model = KM.Model(inputs, outputs)
+model.summary()
+model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+model.fit(X_train, y_train, epochs=5)
+test_loss, test_acc = model.evaluate(X_test, y_test)
+print("Test Loss: {0} - Test Acc: {1}".format(test_loss, test_acc))
+
+
+
+
+
+P10.  Denoising using autoendoders
+
+
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from keras.models import Model
+from keras.layers import Dense, Input
+from keras.datasets import mnist
+from keras.optimizers import Adam
+
+# Helper function to plot autoencoder outputs
+def plot_autoencoder_outputs(autoencoder, n, dims):
+    decoded_imgs = autoencoder.predict(x_test_noisy)
+    plt.figure(figsize=(10, 7))
+    for i in range(n):
+        # Plot original image
+        ax = plt.subplot(3, n, i + 1)
+        plt.imshow(x_test[i].reshape(*dims))
+        plt.gray()
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        if i == n//2:
+            ax.set_title('Original Images')
+
+        # Plot noisy image 
+        ax = plt.subplot(3, n, i + 1 + n)
+        plt.imshow(x_test_noisy[i].reshape(*dims))
+        plt.gray()
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        if i == n//2:
+            ax.set_title('Noisy Input')
+
+        # Plot reconstructed image 
+        ax = plt.subplot(3, n, i + 1 + 2*n)
+        plt.imshow(decoded_imgs[i].reshape(*dims))
+        plt.gray()
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        if i == n//2:
+            ax.set_title('Autoencoder Output')
+    plt.show()
+
+# Load and preprocess the MNIST dataset
+(x_train, _), (x_test, _) = mnist.load_data()
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
+x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
+dims = (28, 28)
+
+# Add noise to the data
+noise_factor = 0.4
+x_train_noisy = x_train + noise_factor * np.random.normal(size=x_train.shape) 
+x_test_noisy = x_test + noise_factor * np.random.normal(size=x_test.shape)
+x_train_noisy = np.clip(x_train_noisy, 0.0, 1.0)
+x_test_noisy = np.clip(x_test_noisy, 0.0, 1.0)
+
+# Denoising Autoencoder Model
+input_size = 784
+hidden_size = 128
+code_size = 32
+input_img = Input(shape=(input_size,))
+hidden_1 = Dense(hidden_size, activation='relu')(input_img)
+code = Dense(code_size, activation='relu')(hidden_1)
+hidden_2 = Dense(hidden_size, activation='relu')(code)
+output_img = Dense(input_size, activation='sigmoid')(hidden_2)
+
+autoencoder = Model(input_img, output_img)
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+autoencoder.fit(x_train_noisy, x_train, epochs=10)
+
+# Plot autoencoder outputs
+plot_autoencoder_outputs(autoencoder, 5, dims)
